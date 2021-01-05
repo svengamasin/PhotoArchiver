@@ -27,8 +27,8 @@ namespace MediaArchiver
         {
             // get recording datetime
             var recordingDateTime = _exifData.GetBestGuessRecordingDateTime();
-            var recordingYear = recordingDateTime.Year.ToString();
-            var recordingMonth = recordingDateTime.Month.ToString();
+            var recordingYear = $"{recordingDateTime.Year:0000}";
+            var recordingMonth = $"{recordingDateTime.Month:00}";
             return (recordingMonth, recordingYear);
         }
 
