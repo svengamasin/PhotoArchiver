@@ -1,0 +1,5 @@
+{
+  "SourceDirectory": "test/mediaFiles",
+  "HashDatabases": "test/dbs",
+  "ArchiveDirectory": "test/target"
+}

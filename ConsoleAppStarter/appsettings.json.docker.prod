@@ -1,0 +1,5 @@
+{
+  "SourceDirectory": "/app/data/source",
+  "HashDatabases": "/app/data/dbs",
+  "ArchiveDirectory": "/app/data/target"
+}

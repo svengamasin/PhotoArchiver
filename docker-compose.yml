@@ -1,0 +1,14 @@
+﻿version: "2.2"
+services:
+  mediaarchiveservice:
+    build: .
+    hostname: mediaarchive
+    volumes:
+      - ./MediaArchiverTests/dbs:/app/data/dbs
+      - ./MediaArchiverTests/mediaFiles:/app/data/source
+      - ./MediaArchiverTests/target:/app/data/target
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Berlin
+    restart: unless-stopped
