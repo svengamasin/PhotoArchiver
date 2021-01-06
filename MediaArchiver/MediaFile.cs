@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using MediaArchiver.Storage;
 using MetadataExtractor;
 using Serilog;
+using Serilog.Core;
 using Directory = MetadataExtractor.Directory;
 
 namespace MediaArchiver
@@ -15,10 +16,12 @@ namespace MediaArchiver
     public class ExifData
     {
         private readonly MediaFile _mediaFile;
+        private readonly ILogger _logger;
 
-        public ExifData(MediaFile mediaFile)
+        public ExifData(MediaFile mediaFile, ILogger logger)
         {
             _mediaFile = mediaFile;
+            _logger = logger;
         }
         public IReadOnlyList<Directory> GetInfos()
         {
@@ -26,7 +29,7 @@ namespace MediaArchiver
             return ImageMetadataReader.ReadMetadata(_mediaFile.MediaFileInfo.FullName);
         }
 
-        public List<Tag> GetAllDateTags()
+        public virtual List<Tag> GetAllDateTags()
         {
             var dirs = GetInfos();
             var tagsWithDates = dirs.SelectMany(x => x.Tags)
@@ -36,29 +39,38 @@ namespace MediaArchiver
 
         public DateTime GetBestGuessRecordingDateTime()
         {
-            var originDateTimes = GetAllDateTags();
-            var dateTimes = originDateTimes.Select(x => x.Description).Where(x => !x?.Equals(string.Empty) ?? false)
-                .Select(date =>
-                {
-                    var date2Parse = date;
-                    DateTime dateTimeTaken;
-                    var exifParsingSuccessful = DateTime.TryParseExact(date2Parse, "yyyy:MM:dd HH:mm:ss",
-                        CultureInfo.CurrentCulture,
-                        DateTimeStyles.None, out dateTimeTaken);
-                    if (!exifParsingSuccessful)
-                        DateTime.TryParse(date2Parse, out dateTimeTaken);
-                    return dateTimeTaken;
-                }).ToList();
-                
-            // last chance: last write access time if no exif data is available
-            dateTimes.Add(_mediaFile.MediaFileInfo.LastWriteTime);
-            // delete all (false) timestamps that are older than any digicam :-)
-            dateTimes = dateTimes.Where(x => x > new DateTime(1990, 1, 1)).ToList();
+            try
+            {
+                var originDateTimes = GetAllDateTags();
+                var dateTimes = originDateTimes.Select(x => x.Description).Where(x => !x?.Equals(string.Empty) ?? false)
+                    .Select(date =>
+                    {
+                        var date2Parse = date;
+                        DateTime dateTimeTaken;
+                        var exifParsingSuccessful = DateTime.TryParseExact(date2Parse, "yyyy:MM:dd HH:mm:ss",
+                            CultureInfo.CurrentCulture,
+                            DateTimeStyles.None, out dateTimeTaken);
+                        if (!exifParsingSuccessful)
+                            DateTime.TryParse(date2Parse, out dateTimeTaken);
+                        return dateTimeTaken;
+                    }).ToList();
 
-            // if datetimes are different, the date (day) with the most occurrences is taken. Then, at that day, the oldest one.
-            var bestGuessCreationTime = dateTimes.GroupBy(x => x.Date.Date).OrderByDescending(x => x.Count()).First().ToList()
-                .OrderBy(x=> x).First();
-            return bestGuessCreationTime;
+                // last chance: last write access time if no exif data is available
+                dateTimes.Add(_mediaFile.MediaFileInfo.LastWriteTime);
+                // delete all (false) timestamps that are older than any digicam :-)
+                dateTimes = dateTimes.Where(x => x > new DateTime(1990, 1, 1)).ToList();
+
+                // if datetimes are different, the date (day) with the most occurrences is taken. Then, at that day, the oldest one.
+                var bestGuessCreationTime = dateTimes.GroupBy(x => x.Date.Date).OrderByDescending(x => x.Count())
+                    .First().ToList()
+                    .OrderBy(x => x).First();
+                return bestGuessCreationTime;
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e.ToString());
+            }
+            return new DateTime(1990,1,1);
         }
 
 
@@ -107,13 +119,30 @@ namespace MediaArchiver
 
         private void CopyToArchive()
         {
-            if (_targetStore.TryAdd(this)) 
-                new MediaFileCopier(_targetDirectory,this,_logger).Copy();
+            try
+            {
+                if (_targetStore.TryAdd(this)) 
+                    new MediaFileCopier(_targetDirectory,this,_logger).Copy();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e.ToString());
+                _sourceStore.TryPurge(this);
+                _targetStore.TryPurge(this);
+            }
         }
 
         private void AddToSourceStore()
         {
-            _sourceStore.TryAdd(this);
+            try
+            {
+                _sourceStore.TryAdd(this);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e.ToString());
+                _sourceStore.TryPurge(this);
+            }
         }
 
         public void Dispose()

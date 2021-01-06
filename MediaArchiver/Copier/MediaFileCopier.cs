@@ -19,7 +19,7 @@ namespace MediaArchiver
             _targetDirectoryInfo = targetDirectoryInfo;
             _mediaFile = mediaFile;
             _logger = logger;
-            _exifData = new ExifData(_mediaFile);
+            _exifData = new ExifData(mediaFile,logger);
             _sequence = new List<FileInfo>();
         }
 

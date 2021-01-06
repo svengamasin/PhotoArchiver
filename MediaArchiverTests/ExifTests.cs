@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaArchiver;
+using MetadataExtractor;
+using Moq;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -27,11 +30,21 @@ namespace MediaArchiverTests
         public void RecordingTimeFromExifIsCorrect()
         {
             var testMediaFile = _testdata.GetMediaFiles(_logger).First();
-            var exifSearcher = new ExifData(testMediaFile);
+            var exifSearcher = new ExifData(testMediaFile,_logger);
             var result = exifSearcher.GetInfos();
             var dateTags = exifSearcher.GetAllDateTags();
             var bestGuess = exifSearcher.GetBestGuessRecordingDateTime();
             Assert.True(bestGuess.Date.Equals(new DateTime(2020,12,24)));
+        }
+
+        [Fact]
+        public void ShouldWorkIfExifDataIsEmpty()
+        {
+            var testMediaFile = _testdata.GetMediaFiles(_logger).First();
+            var exifDataMock = new Mock<ExifData>(testMediaFile);
+            exifDataMock.Setup(m => m.GetAllDateTags()).Returns(new List<Tag>());
+            //var exifSearcher = new ExifData(testMediaFile);
+            Assert.True(exifDataMock.Object.GetBestGuessRecordingDateTime().Day ==24 );
         }
 
 

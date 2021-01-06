@@ -35,6 +35,17 @@ namespace MediaArchiver
         {
             return hashStore.TryAdd(mediaFile.MediaFileInfo.FullName, mediaFile.Md5Hash);
         }
+
+        public static bool TryRemove(this IHashStore hashStore, MediaFile mediaFile)
+        {
+            return hashStore.TryRemove(mediaFile.MediaFileInfo.FullName);
+        }
+
+        public static bool TryPurge(this IHashStore hashStore, MediaFile mediaFile)
+        {
+            return hashStore.TryRemove(mediaFile.MediaFileInfo.FullName) &&
+                   hashStore.TryDeleteHash(mediaFile.Md5Hash);
+        }
     }
 
 }
