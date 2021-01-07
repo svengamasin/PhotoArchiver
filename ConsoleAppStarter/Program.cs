@@ -72,14 +72,24 @@ namespace ConsoleApp1
 
 
             services.AddTransient<MediaArchiver.IMediaReader, MediaArchiver.MediaReader>(provider =>
-            {
-                var sourceDir = new DirectoryInfo(Configuration["SourceDirectory"]);
-                
-                var mediaReader = new MediaReader(sourceDir);
-                return mediaReader;
-            });
-            // Add app
-            services.AddTransient<MediaArchiver.App>(provider =>
+                {
+                    var sourceDir = new DirectoryInfo(Configuration["SourceDirectory"]);
+                    var useFastReader = Boolean.Parse(Configuration["useFastReader"] ?? "false");
+                    var logger = provider.GetService<Serilog.ILogger>();
+
+                    if (useFastReader)
+                    {
+                        var sourceDb = new DbHashStore("sourceHashs",
+                            Path.Combine(Configuration["HashDatabases"], "source.db"), provider.GetService<ILogger>());
+                        return new FastMediaReader(sourceDb, sourceDir, logger);
+                    }
+
+                    return new MediaReader(sourceDir, logger);
+                }
+            );
+
+                // Add app
+                services.AddTransient<MediaArchiver.App>(provider =>
             {
                 // add services for app
                 var sourceDb = new DbHashStore("sourceHashs", Path.Combine(Configuration["HashDatabases"],"source.db"), provider.GetService<ILogger>());

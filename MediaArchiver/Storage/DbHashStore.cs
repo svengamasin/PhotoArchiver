@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using LiteDB;
 using Serilog;
 
@@ -18,6 +19,13 @@ namespace MediaArchiver.Storage
             _logger.Information($"Creating db: {dbFileFullName} / Collectionname: {collectionName}");
             _db = new LiteDatabase(dbFileFullName);
             _collection = _db.GetCollection<BsonDocument>(collectionName);
+            EnsureIndexes();
+        }
+
+        private void EnsureIndexes()
+        {
+            _collection?.EnsureIndex(x => x["FullName"]);
+            _collection?.EnsureIndex(x => x["Md5Hash"]);
         }
         
         public bool TryAdd(string fullFileName, string md5Hash)
@@ -40,14 +48,13 @@ namespace MediaArchiver.Storage
 
         public bool HashFound(string md5Hash)
         {
-            return _collection.Find(x => x["Md5Hash"] == md5Hash).Any();
+            return _collection.FindOne(x => x["Md5Hash"] == md5Hash) != null;
         }
 
         public bool Exists(string fullFileName)
         {
-            return _collection.Find(x => x["FullName"] == fullFileName).Any();
+            return _collection.FindOne(x => x["FullName"] == fullFileName) != null;
         }
-
 
         public bool TryDeleteHash(string md5Hash)
         {

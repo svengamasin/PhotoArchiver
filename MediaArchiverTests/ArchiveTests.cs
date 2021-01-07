@@ -74,7 +74,7 @@ namespace MediaArchiverTests
                     $"{Path.Combine(mediaFile.MediaFileInfo.Directory.FullName, mediaFile.MediaFileInfo.NameWithoutExtension())}_{i:000}{mediaFile.MediaFileInfo.Extension}");
             }
 
-            var mediaFiles = new MediaArchiver.MediaReader(_testdata.SourceDir).GetMediaFiles().Select(x=> new MediaFile(x,_testdata.SourceHashDb,
+            var mediaFiles = new MediaArchiver.MediaReader(_testdata.SourceDir, _logger).GetMediaFiles().Select(x=> new MediaFile(x,_testdata.SourceHashDb,
                 _testdata.TargetHashDb, _testdata.TargetDir, _logger)).ToList();
             // Test
             mediaFiles.ForEach(x=> x.ToArchive());

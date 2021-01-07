@@ -38,7 +38,7 @@ namespace MediaArchiverTests
 
         public List<MediaFile> GetMediaFiles(Logger logger)
         {
-            var mediaDir = new MediaArchiver.MediaReader(SourceDir);
+            var mediaDir = new MediaArchiver.MediaReader(SourceDir, logger);
             var files = mediaDir.GetMediaFiles();
             return files.Select(x => new MediaFile(x, SourceHashDb, TargetHashDb,
                 TargetDir, logger)).ToList();
@@ -46,7 +46,7 @@ namespace MediaArchiverTests
 
         public List<MediaFile> GetMediaFilesFast(Logger logger)
         {
-            var mediaDir = new MediaArchiver.FastMediaReader(SourceHashDb,SourceDir);
+            var mediaDir = new MediaArchiver.FastMediaReader(SourceHashDb,SourceDir, logger);
             var files = mediaDir.GetMediaFiles();
             return files.Select(x => new MediaFile(x, SourceHashDb, TargetHashDb,
                 TargetDir, logger)).ToList();

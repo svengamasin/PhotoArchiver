@@ -1,5 +1,6 @@
 {
   "SourceDirectory": "test/mediaFiles",
   "HashDatabases": "test/dbs",
-  "ArchiveDirectory": "test/target"
+  "ArchiveDirectory": "test/target",
+  "useFastReader": true
 }

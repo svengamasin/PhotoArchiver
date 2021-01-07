@@ -41,10 +41,10 @@ namespace MediaArchiverTests
         public void ShouldWorkIfExifDataIsEmpty()
         {
             var testMediaFile = _testdata.GetMediaFiles(_logger).First();
-            var exifDataMock = new Mock<ExifData>(testMediaFile);
+            var exifDataMock = new Mock<ExifData>(testMediaFile,_logger);
             exifDataMock.Setup(m => m.GetAllDateTags()).Returns(new List<Tag>());
             //var exifSearcher = new ExifData(testMediaFile);
-            Assert.True(exifDataMock.Object.GetBestGuessRecordingDateTime().Day ==24 );
+            Assert.True(exifDataMock.Object.GetBestGuessRecordingDateTime().Day > 0 );
         }
 
 

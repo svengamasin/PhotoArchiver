@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using MediaArchiver.Storage;
+using Serilog;
 
 namespace MediaArchiver
 {
@@ -9,7 +10,7 @@ namespace MediaArchiver
     {
         private IHashStore _sourceDb;
 
-        public FastMediaReader(IHashStore sourceDb, DirectoryInfo sourceDirInfo, IList<string> extensionFilters = null, bool recursive = true) : base(sourceDirInfo, extensionFilters, recursive)
+        public FastMediaReader(IHashStore sourceDb, DirectoryInfo sourceDirInfo, ILogger logger, IList<string> extensionFilters = null, bool recursive = true) : base(sourceDirInfo, logger, extensionFilters, recursive)
         {
             _sourceDb = sourceDb;
         }
@@ -20,7 +21,9 @@ namespace MediaArchiver
         public override IList<FileInfo> GetMediaFiles()
         {
             var files = base.GetMediaFiles();
-            return files.Where(x => !_sourceDb.Exists(x.FullName)).ToList();
+            var filesForProcessing = files.Where(x => !_sourceDb.Exists(x.FullName)).AsParallel().ToList();
+            Logger.Information($"Got media files for fast processing: {filesForProcessing.Count}");
+            return filesForProcessing;
         }
     }
 }

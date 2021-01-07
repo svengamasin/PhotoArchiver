@@ -1,5 +1,7 @@
 ﻿
 
+using System.Threading.Tasks;
+
 namespace MediaArchiver.Storage
 {
     public interface IHashStore
