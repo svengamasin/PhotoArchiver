@@ -11,14 +11,16 @@ namespace ConsoleApp1
     {
         private readonly App _archiveServiceApp;
         private readonly ILogger _logger;
+        private readonly TimeSpan _serviceInterval;
         private Timer _timer;
         private bool _isRunning;
 
 
-        public TimerArchiveService(App archiveServiceApp, Serilog.ILogger logger)
+        public TimerArchiveService(App archiveServiceApp, Serilog.ILogger logger, TimeSpan serviceInterval)
         {
             _archiveServiceApp = archiveServiceApp;
             _logger = logger;
+            _serviceInterval = serviceInterval;
             _isRunning = false;
         }
         
@@ -30,7 +32,7 @@ namespace ConsoleApp1
                 RunMediaArchiver,
                 null,
                 TimeSpan.Zero,
-                TimeSpan.FromMinutes(3)
+                _serviceInterval
             );
             return Task.CompletedTask;
         }

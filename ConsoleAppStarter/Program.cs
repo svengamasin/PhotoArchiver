@@ -95,14 +95,15 @@ namespace ConsoleApp1
                 var sourceDb = new DbHashStore("sourceHashs", Path.Combine(Configuration["HashDatabases"],"source.db"), provider.GetService<ILogger>());
                 var targetDb = new DbHashStore("targetHashs", Path.Combine(Configuration["HashDatabases"], "target.db"), provider.GetService<ILogger>());
                 var targetDir = new DirectoryInfo(Configuration["ArchiveDirectory"]);
-
+                
                 return new App(targetDir, sourceDb, targetDb, provider.GetService<IMediaReader>(),
                     provider.GetService<ILogger>());
             });
             // Add periodic service
             services.AddHostedService<TimerArchiveService>(provider =>
             {
-                return new TimerArchiveService(provider.GetService<App>(), provider.GetService<Serilog.ILogger>());
+                var serviceInterval = Int32.Parse(Configuration["serviceIntervalInHours"] ?? "3"); 
+                return new TimerArchiveService(provider.GetService<App>(), provider.GetService<Serilog.ILogger>(), TimeSpan.FromHours(serviceInterval));
             });
         }
     }

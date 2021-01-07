@@ -2,5 +2,6 @@
   "SourceDirectory": "test/mediaFiles",
   "HashDatabases": "test/dbs",
   "ArchiveDirectory": "test/target",
-  "useFastReader": true
+  "useFastReader": true,
+  "serviceIntervalInHours": 3
 }
