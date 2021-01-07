@@ -26,7 +26,6 @@ namespace ConsoleApp1
             ConfigureServices(serviceCollection);
 
             // Create service provider
-            //IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             var builder = new HostBuilder().ConfigureServices(collection =>
             {
                 foreach (var serviceDescriptor in serviceCollection)
@@ -35,13 +34,6 @@ namespace ConsoleApp1
                 }
             });
             await builder.RunConsoleAsync();
-
-
-            //var logger = serviceProvider.GetService<Serilog.ILogger>();
-            //logger.Information("Starting App...");
-            //var app = serviceProvider.GetService<App>();
-            //await app.Run();
-            //logger.Information("App finished work.");
         }
 
         private static void ConfigureServices(IServiceCollection services)
@@ -71,7 +63,7 @@ namespace ConsoleApp1
             });
 
 
-            services.AddTransient<MediaArchiver.IMediaReader, MediaArchiver.MediaReader>(provider =>
+            services.AddTransient<MediaArchiver.IMediaReader>(provider =>
                 {
                     var sourceDir = new DirectoryInfo(Configuration["SourceDirectory"]);
                     var useFastReader = Boolean.Parse(Configuration["useFastReader"] ?? "false");

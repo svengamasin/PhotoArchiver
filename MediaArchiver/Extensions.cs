@@ -15,7 +15,7 @@ namespace MediaArchiver
 
     public static class MediaReaderExtensions
     {
-        public static void Run(this MediaReader mediaReader, IHashStore sourceStore, IHashStore targetStore,
+        public static void Run(this IMediaReader mediaReader, IHashStore sourceStore, IHashStore targetStore,
             DirectoryInfo targetDir, ILogger logger)
         {
             var files = mediaReader.GetMediaFiles();
