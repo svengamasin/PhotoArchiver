@@ -61,6 +61,20 @@ namespace ConsoleApp1
                 var factory = new LoggerFactory();
                 return factory.AddSerilog(logger);
             });
+            Func<string,string> temp = (string a) => { return a; };
+
+            services.AddSingleton(provider =>
+            {
+                return new Func<string,IHashStore>((string dbFileName) =>
+                {
+                    return SingletonFactory<DbHashStore>.GetSingleton(dbFileName, new Func<DbHashStore>(() =>
+                    {
+                        return new DbHashStore("sourceHashs", Path.Combine(Configuration["HashDatabases"], dbFileName),
+                            provider.GetService<ILogger>());
+                    }));
+
+                });
+            });
 
 
             services.AddTransient<MediaArchiver.IMediaReader>(provider =>
@@ -71,8 +85,7 @@ namespace ConsoleApp1
 
                     if (useFastReader)
                     {
-                        var sourceDb = new DbHashStore("sourceHashs",
-                            Path.Combine(Configuration["HashDatabases"], "source.db"), provider.GetService<ILogger>());
+                        var sourceDb = provider.GetService<Func<string, IHashStore>>().Invoke("source.db");
                         return new FastMediaReader(sourceDb, sourceDir, logger);
                     }
 
@@ -84,10 +97,10 @@ namespace ConsoleApp1
                 services.AddTransient<MediaArchiver.App>(provider =>
             {
                 // add services for app
-                var sourceDb = new DbHashStore("sourceHashs", Path.Combine(Configuration["HashDatabases"],"source.db"), provider.GetService<ILogger>());
-                var targetDb = new DbHashStore("targetHashs", Path.Combine(Configuration["HashDatabases"], "target.db"), provider.GetService<ILogger>());
                 var targetDir = new DirectoryInfo(Configuration["ArchiveDirectory"]);
-                
+                var sourceDb = provider.GetService<Func<string, IHashStore>>().Invoke("source.db");
+                var targetDb = provider.GetService<Func<string, IHashStore>>().Invoke("target.db");
+
                 return new App(targetDir, sourceDb, targetDb, provider.GetService<IMediaReader>(),
                     provider.GetService<ILogger>());
             });
@@ -95,6 +108,7 @@ namespace ConsoleApp1
             services.AddHostedService<TimerArchiveService>(provider =>
             {
                 var serviceInterval = Int32.Parse(Configuration["serviceIntervalInHours"] ?? "3"); 
+                
                 return new TimerArchiveService(provider.GetService<App>(), provider.GetService<Serilog.ILogger>(), TimeSpan.FromHours(serviceInterval));
             });
         }
