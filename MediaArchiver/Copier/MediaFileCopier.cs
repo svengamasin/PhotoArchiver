@@ -98,7 +98,7 @@ namespace MediaArchiver
             _sequence = targetFileInfo.Directory.GetFiles($"{targetFileInfo.NameWithoutExtension()}*").OrderBy(x=> x.Name).ToList();
 
             //return filename of new file in sequence
-            return new FileInfo($"{Path.Combine(targetFileInfo.Directory.FullName,targetFileInfo.NameWithoutExtension())}_{++i}{targetFileInfo.Extension}");
+            return new FileInfo($"{Path.Combine(targetFileInfo.Directory.FullName,targetFileInfo.NameWithoutExtension())}_{++i:000}{targetFileInfo.Extension}");
         }
 
         public bool RenamingInArchiveWasNecessary()
