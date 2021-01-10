@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using MediaArchiver.Exif;
 using Serilog;
 using Serilog.Core;
 
@@ -11,7 +12,7 @@ namespace MediaArchiver
         private readonly DirectoryInfo _targetDirectoryInfo;
         private readonly MediaFile _mediaFile;
         private readonly ILogger _logger;
-        private ExifData _exifData;
+        private ExifDataReader _exifData;
         private List<FileInfo> _sequence;
 
         public MediaFileCopier(DirectoryInfo targetDirectoryInfo, MediaFile mediaFile, ILogger logger)
@@ -19,7 +20,7 @@ namespace MediaArchiver
             _targetDirectoryInfo = targetDirectoryInfo;
             _mediaFile = mediaFile;
             _logger = logger;
-            _exifData = new ExifData(mediaFile,logger);
+            _exifData = new ExifDataReader(mediaFile.MediaFileInfo,logger);
             _sequence = new List<FileInfo>();
         }
 
